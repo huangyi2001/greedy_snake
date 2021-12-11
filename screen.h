@@ -6,10 +6,13 @@
 #define GREEDY_SNAKE_SCREEN_H
 #endif //GREEDY_SNAKE_SCREEN_H
 
-#define ROWS 10
-#define COLS 50
+#define ROWS 15
+#define COLS 40
 #define True 1
 #define False 0
+
+
+enum Status {GAME_RUN, GAME_END, GAME_KILL, GAME_WIN};
 
 
 typedef struct point{
@@ -52,6 +55,8 @@ typedef struct screen{
     int snakeLength;
     // 记录用户按下的方向
     MovePoint *moveArray;
+    // 记录食物的位置
+    Point food;
 } Screen;
 
 /**
@@ -70,4 +75,4 @@ void closeScreen(Screen *screen);
 
 
 // 移动屏幕上的蛇
-_Bool  moveSnake(Screen *screen, Point point);
+enum Status moveSnake(Screen *screen, Point point);

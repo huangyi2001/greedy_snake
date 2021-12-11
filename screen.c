@@ -1,9 +1,28 @@
 //
 // Created by HuangYi on 2021/12/11.
 //
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "screen.h"
+// 列举出所有食物可以出现的位置
+
+
+enum Status randomFood(Screen *screen, _Bool first){
+    srand(time(NULL));
+    // 图个方便, 如果5000次没有随机到一个食物位置, 就直接结束了
+    for (int i = 0; i < 5000; ++i) {
+        int x = rand() % ROWS;
+        int y = rand() % COLS;
+        if (screen->tiles[x][y] == ' '){
+            screen->tiles[x][y] = 'o';
+            screen->food.x = x;
+            screen->food.y = y;
+            return GAME_RUN;
+        }
+    }
+    return GAME_WIN;
+}
 
 
 MovePoint * createMovePoint(){
@@ -19,7 +38,20 @@ MovePoint * createMovePoint(){
 }
 
 
+Snake * createSnakeBody(Screen *screen, int x, int y){
+    Snake *snake = (Snake *) malloc(sizeof(Snake));
+    snake->mov.x = 0;
+    snake->mov.y = 0;
+    snake->pos.x = x;
+    snake->pos.y = y;
+    snake->next = NULL;
+    screen->snakeLength ++;
+    return snake;
+}
+
+
 void addMovePoint(Screen *screen, Point point){
+    if (point.x == 0 && point.y == 0) return;
     MovePoint *head = screen->moveArray;
     if (head == NULL){
         screen->moveArray = createMovePoint();
@@ -38,18 +70,6 @@ void addMovePoint(Screen *screen, Point point){
 }
 
 
-Snake * createSnakeBody(Screen *screen, int x, int y){
-    Snake *snake = (Snake *) malloc(sizeof(Snake));
-    snake->mov.x = 0;
-    snake->mov.y = 0;
-    snake->pos.x = x;
-    snake->pos.y = y;
-    snake->next = NULL;
-    screen->snakeLength ++;
-    return snake;
-}
-
-
 // 在屏幕后面添加一个蛇方框
 void addSnakeBody(Screen *screen){
     Snake *snake = screen->snake;
@@ -57,20 +77,30 @@ void addSnakeBody(Screen *screen){
         snake = snake->next;
     }
     Point local = snake->pos;
-    Snake *new = createSnakeBody(screen, local.x, local.y - 1);
+    Snake *new = createSnakeBody(screen, local.x - snake->mov.x, local.y - snake->mov.y);
     new->mov.x = snake->mov.x;
     new->mov.y = snake->mov.y;
-    screen->tiles[local.x][local.y - 1] = '*';
+    screen->tiles[new->pos.x][new->pos.y] = '*';
     snake->next = new;
 }
 
 // 移动贪吃蛇的身体
-void moveSnakeBody(Screen *screen, Snake *snake){
+enum Status moveSnakeBody(Screen *screen, Snake *snake){
     screen->tiles[snake->pos.x][snake->pos.y] = ' ';
     snake->pos.x += snake->mov.x;
     snake->pos.y += snake->mov.y;
+    _Bool is_add_food = False;
+    if (screen->tiles[snake->pos.x][snake->pos.y] == 'o'){
+        addSnakeBody(screen);
+        is_add_food = True;
+    }
     screen->tiles[snake->pos.x][snake->pos.y] = '*';
+    if (is_add_food){
+        return randomFood(screen, False);
+    }
+    return GAME_RUN;
 }
+
 
 
 // 管理贪吃蛇的移动
@@ -89,7 +119,7 @@ void manageMoveSnakeBody(Screen *screen){
                 snake_head->mov.y = move_temp->mov.y;
                 move_temp->count++;
             }
-            if (move_temp->count > screen->snakeLength){
+            if (move_temp->count == screen->snakeLength){
                 move_temp->is_kill = True;
             }
             move_temp = move_temp->next;
@@ -98,14 +128,12 @@ void manageMoveSnakeBody(Screen *screen){
     }
     // 删除多余(is_kill)的移动
     MovePoint *move_temp = move_head;
-    while (move_temp != NULL){
-        if (move_temp->next != NULL && move_temp->is_kill){
-            MovePoint *temp = move_temp->next;
-            move_temp->next = temp->next;
-            free(temp);
-        }
-        move_temp = move_temp->next;
+    if (move_temp->next != NULL && move_temp->is_kill){
+        MovePoint *temp = move_temp->next;
+        free(move_temp);
+        move_temp = temp;
     }
+    screen->moveArray = move_temp;
 }
 
 
@@ -123,28 +151,40 @@ _Bool isBackMove(Screen *screen, Point point){
 }
 
 
+_Bool isKillMe(Screen *screen){
+    Snake *head = screen->snake;
+    return screen->tiles[head->pos.x + head->mov.x][head->pos.y + head->mov.y] == '*';
+}
 
-_Bool  moveSnake(Screen *screen, Point point){
+
+enum Status moveSnake(Screen *screen, Point point){
     if (point.x == 0 && point.y == 0){
-        return True;
+        return GAME_RUN;
     }
     Snake *head = screen->snake;
     // 检查是否撞到墙, 游戏结束
     if (isGameEnd(screen, point)){
-        return False;
+        return GAME_END;
+    }
+    // 检查是否自己撞到自己
+    if (isKillMe(screen)){
+        return GAME_KILL;
     }
     // 检查是否向同一方向的背面移动
     if (isBackMove(screen, point)){
-        return True;
+        point.x = 0;
+        point.y = 0;
     }
     // 记录这次移动方向的位置
     addMovePoint(screen, point);
     manageMoveSnakeBody(screen);
     while (head != NULL){
-        moveSnakeBody(screen, head);
+        if (moveSnakeBody(screen, head) == GAME_WIN){
+            return GAME_WIN;
+        }
         head = head->next;
     }
-    return True;
+    return GAME_RUN;
 }
 
 
@@ -156,6 +196,7 @@ void initSnakePosition(Screen *screen){
     screen->tiles[2][4] = '*';
     addSnakeBody(screen);
     addSnakeBody(screen);
+    randomFood(screen, True);
 }
 
 

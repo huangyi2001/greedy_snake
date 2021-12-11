@@ -1,23 +1,31 @@
 #include <stdio.h>
-#include <time.h>
+#include <windows.h>
 #include <conio.h>
 #include "screen.h"
 
 
 int main() {
-    int count = 0;
+    DWORD local = 0;
     Screen screen = createScreen();
     int ch;
     Point point;
-    point.x = 1;
+    enum Status status;
+    point.x = 0;
     point.y = 0;
     while (1){
-        count ++;
-        if (count > 5000){
-            count = 0;
+        // 300毫米一刷
+        if (GetTickCount() - local >= 300){
+            local = GetTickCount();
             showScreen(&screen);
-            if (!moveSnake(&screen, point)){
-                puts("\nEnd.");
+            status = moveSnake(&screen, point);
+            if (status == GAME_WIN){
+                puts("\nGAME WIN.");
+                break;
+            }else if(status == GAME_KILL){
+                puts("\nKill ME.");
+                break;
+            }else if(status == GAME_END) {
+                puts("\nGAME END.");
                 break;
             }
         }
