@@ -12,6 +12,7 @@
 #define False 0
 
 
+// 游戏继续运行、游戏结束、自己撞到了自己、游戏胜利、按下了当前移动状态的相反方向键
 enum Status {GAME_RUN, GAME_END, GAME_KILL, GAME_WIN, GAME_BACK_RUN};
 
 
@@ -26,7 +27,7 @@ typedef struct snake{
     Point pos;
     // 贪吃蛇身体下一次移动的方向
     Point mov;
-    // 贪吃蛇身体下一个身体
+    // 贪吃蛇身体的下一个身体(链表)
     struct snake *next;
 } Snake;
 
@@ -40,7 +41,7 @@ typedef struct movePoint{
     int count;
     // 是否已经移动完成
     _Bool is_kill;
-    // 记录下一个
+    // 记录下一个(链表)
     struct movePoint *next;
 } MovePoint;
 

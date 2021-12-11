@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "screen.h"
-// 列举出所有食物可以出现的位置
 
 
+// 随机食物o的位置
 enum Status randomFood(Screen *screen, _Bool first){
     srand(time(NULL));
-    // 图个方便, 如果5000次没有随机到一个食物位置, 就直接结束了
+    // 图个方便, 如果5000次没有随机到一个食物位置, 就直接游戏胜利了
     for (int i = 0; i < 5000; ++i) {
         int x = rand() % ROWS;
         int y = rand() % COLS;
@@ -25,6 +25,7 @@ enum Status randomFood(Screen *screen, _Bool first){
 }
 
 
+// 分配一个MovePoint结构
 MovePoint * createMovePoint(){
     MovePoint *move = (MovePoint *) malloc(sizeof(MovePoint));
     move->count = 0;
@@ -38,6 +39,7 @@ MovePoint * createMovePoint(){
 }
 
 
+// 分配一个贪吃蛇身体的结构
 Snake * createSnakeBody(Screen *screen, int x, int y){
     Snake *snake = (Snake *) malloc(sizeof(Snake));
     snake->mov.x = 0;
@@ -50,6 +52,7 @@ Snake * createSnakeBody(Screen *screen, int x, int y){
 }
 
 
+// 添加一个拐弯位置
 void addMovePoint(Screen *screen, Point point){
     if (point.x == 0 && point.y == 0) return;
     MovePoint *head = screen->moveArray;
@@ -70,7 +73,7 @@ void addMovePoint(Screen *screen, Point point){
 }
 
 
-// 在屏幕后面添加一个蛇方框
+// 在屏幕后面添加一个蛇*
 void addSnakeBody(Screen *screen){
     Snake *snake = screen->snake;
     while (snake->next != NULL){
@@ -114,11 +117,13 @@ void manageMoveSnakeBody(Screen *screen){
                 move_temp = move_temp->next;
                 continue;
             }
+            // 检查这个点*是否到了要拐弯的位置
             if (snake_head->pos.x == move_temp->headPos.x && snake_head->pos.y == move_temp->headPos.y){
                 snake_head->mov.x = move_temp->mov.x;
                 snake_head->mov.y = move_temp->mov.y;
                 move_temp->count++;
             }
+            // 当所有都拐弯拐完了之后, 标记释放
             if (move_temp->count == screen->snakeLength){
                 move_temp->is_kill = True;
             }
@@ -126,7 +131,7 @@ void manageMoveSnakeBody(Screen *screen){
         }
         snake_head = snake_head->next;
     }
-    // 删除多余(is_kill)的移动
+    // 删除已经移动完了的拐弯位置
     MovePoint *move_temp = move_head;
     if (move_temp->next != NULL && move_temp->is_kill){
         MovePoint *temp = move_temp->next;
@@ -137,12 +142,14 @@ void manageMoveSnakeBody(Screen *screen){
 }
 
 
+// 蛇头撞到墙了游戏结束
 _Bool isGameEnd(Screen *screen, Point point){
     Snake *head = screen->snake;
     return screen->tiles[head->pos.x + point.x][head->pos.y + point.y] == '#';
 }
 
 
+// 键盘按下了相反的方向
 _Bool isBackMove(Screen *screen, Point point){
     Snake *head = screen->snake;
     int next_x = head->pos.x + point.x;
@@ -151,6 +158,7 @@ _Bool isBackMove(Screen *screen, Point point){
 }
 
 
+// 贪吃蛇撞到了自己的身体
 _Bool isKillMe(Screen *screen){
     Snake *head = screen->snake;
     return screen->tiles[head->pos.x + head->mov.x][head->pos.y + head->mov.y] == '*';
@@ -190,20 +198,22 @@ enum Status moveSnake(Screen *screen, Point point){
 }
 
 
+// 初始化贪吃蛇的位置
 void initSnakePosition(Screen *screen){
-    Snake *snake = createSnakeBody(screen, 2, 10);
+    Snake *snake = createSnakeBody(screen, 2, 6);
     snake->mov.x = 0;
     snake->mov.y = 1;
     screen->snake = snake;
-    screen->tiles[2][10] = '*';
-    // 初始长度 5
-    for (int i = 0; i < 5; ++i) {
+    screen->tiles[2][6] = '*';
+    // 初始长度 3
+    for (int i = 0; i < 2; ++i) {
         addSnakeBody(screen);
     }
     randomFood(screen, True);
 }
 
 
+// 创建一个屏幕结构
 Screen createScreen(){
     Screen screen;
     for (int i = 0; i < ROWS; ++i) {
@@ -236,6 +246,7 @@ void showScreen(Screen *screen){
 }
 
 
+// 结束游戏, free释放蛇的身体和拐弯位置内存
 void closeScreen(Screen *screen){
     Snake *head = screen->snake;
     MovePoint *move_head = screen->moveArray;
