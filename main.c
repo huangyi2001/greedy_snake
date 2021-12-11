@@ -8,12 +8,11 @@ int main() {
     DWORD local = 0;
     Screen screen = createScreen();
     int ch;
-    Point point;
+    Point point = {0, 1};
+    Point last = {0, 0};
     enum Status status;
-    point.x = 0;
-    point.y = 0;
     while (1){
-        // 200毫米一刷
+        // 200毫秒一刷
         if (GetTickCount() - local >= 200){
             local = GetTickCount();
             showScreen(&screen);
@@ -27,7 +26,12 @@ int main() {
             }else if(status == GAME_END) {
                 puts("\nGAME END.");
                 break;
+            } else if(status == GAME_BACK_RUN){
+                point.x = last.x;
+                point.y = last.y;
             }
+            last.x = point.x;
+            last.y = point.y;
         }
         // 获取键盘输入
         if (_kbhit()){
@@ -35,7 +39,7 @@ int main() {
             if (ch == 27) {
                 closeScreen(&screen);
                 break;
-            };
+            }
             switch (ch) {
                 case 119: {
                     point.x = -1;

@@ -7,12 +7,12 @@
 #endif //GREEDY_SNAKE_SCREEN_H
 
 #define ROWS 15
-#define COLS 40
+#define COLS 25
 #define True 1
 #define False 0
 
 
-enum Status {GAME_RUN, GAME_END, GAME_KILL, GAME_WIN};
+enum Status {GAME_RUN, GAME_END, GAME_KILL, GAME_WIN, GAME_BACK_RUN};
 
 
 typedef struct point{

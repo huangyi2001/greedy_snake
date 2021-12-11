@@ -158,6 +158,7 @@ _Bool isKillMe(Screen *screen){
 
 
 enum Status moveSnake(Screen *screen, Point point){
+    enum Status resp = GAME_RUN;
     if (point.x == 0 && point.y == 0){
         return GAME_RUN;
     }
@@ -174,6 +175,7 @@ enum Status moveSnake(Screen *screen, Point point){
     if (isBackMove(screen, point)){
         point.x = 0;
         point.y = 0;
+        resp = GAME_BACK_RUN;
     }
     // 记录这次移动方向的位置
     addMovePoint(screen, point);
@@ -184,18 +186,20 @@ enum Status moveSnake(Screen *screen, Point point){
         }
         head = head->next;
     }
-    return GAME_RUN;
+    return resp;
 }
 
 
 void initSnakePosition(Screen *screen){
-    Snake *snake = createSnakeBody(screen, 2, 4);
+    Snake *snake = createSnakeBody(screen, 2, 10);
     snake->mov.x = 0;
     snake->mov.y = 1;
     screen->snake = snake;
-    screen->tiles[2][4] = '*';
-    addSnakeBody(screen);
-    addSnakeBody(screen);
+    screen->tiles[2][10] = '*';
+    // 初始长度 5
+    for (int i = 0; i < 5; ++i) {
+        addSnakeBody(screen);
+    }
     randomFood(screen, True);
 }
 
