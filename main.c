@@ -13,8 +13,8 @@ int main() {
     point.x = 0;
     point.y = 0;
     while (1){
-        // 300毫米一刷
-        if (GetTickCount() - local >= 300){
+        // 200毫米一刷
+        if (GetTickCount() - local >= 200){
             local = GetTickCount();
             showScreen(&screen);
             status = moveSnake(&screen, point);
